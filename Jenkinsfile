@@ -1,6 +1,10 @@
 pipeline {
    agent any
 
+   environment{
+        DOCKERHUB_CREDENTIALS=credentials('dockerhub')
+  }
+
    stages {
       stage('Verify Branch') {
          steps {
@@ -38,6 +42,27 @@ pipeline {
             }
          }
       }
+      stage ('Login to DockerHub') {
+
+                       steps {
+                           sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                       }
+
+                  }
+                
+      stage('Docker Push') {
+         steps {
+            echo "Running in $WORKSPACE"
+            dir("$WORKSPACE/azure-vote"){
+            script{
+            
+                     def image = docker.build('stevesam/jenkins-course')
+                     image.push()
+              }
+          }
+         }
+      }
+     
    }
    post {
       always {
